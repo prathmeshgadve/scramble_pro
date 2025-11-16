@@ -1,0 +1,143 @@
+Nice — I turned your description into two ready-to-paste Replit prompts you can use right away: one **concise** (short & direct) and one **detailed** (full spec with tech choices, API, DB schema, pages, and UX). Pick whichever fits how much guidance you want the generator to follow.
+
+# Prompt — concise
+
+```
+Build a full-stack "Scrambled Word" game web app. Stack: React (frontend) + Node/Express (backend) + MongoDB (Atlas) for persistence. Key features:
+- Gameplay: 10 rounds per game. Each round shows one scrambled word; player rearranges letters. Timer per round. Correct arrangement increases score. Show total after 10 rounds.
+- Hints: a "Hint" button reveals the word's meaning (from DB) to help solve.
+- Categories & difficulty: before starting, choose a category and difficulty level. Words belong to category & difficulty.
+- Sounds/UX: play short sounds for start, correct, wrong, round end; background music and subtle animations. Use Howler.js for audio and Framer Motion or CSS animations.
+- Leaderboard: saves user total scores; visible in-game and on a leaderboard page. Admin can remove cheaters / edit leaderboard entries.
+- Auth & profile: register/login (JWT + bcrypt). Users have editable profiles and a history of games.
+- Admin dashboard: admin login from front page; dashboard to add/edit/delete categories, words (word + meaning + difficulty + category), manage leaderboard entries.
+- UI: modern, attractive design (Tailwind CSS), responsive, accessible. Include README, environment variables, run scripts.
+Deliver: working frontend + backend, REST API, DB models, sample seed data (categories & words), and deployment notes for Replit.
+```
+
+# Prompt — detailed (paste this to get a complete spec + file structure)
+
+```
+Project: Scrambled Word — Full-stack web app for Replit
+
+Goal
+Create a polished, deployable full-stack web app where users play a 10-round scrambled-word game, get hints (word meanings), earn scores, and compete on a leaderboard. Include a separate admin panel to manage categories, words, and leaderboard.
+
+Tech stack (suggested)
+- Frontend: React (Vite or Create React App), Tailwind CSS for styling, Framer Motion for animations, Howler.js (or similar) for sounds, React Router.
+- Backend: Node.js + Express
+- Database: MongoDB Atlas (Mongoose)
+- Auth: JWT + bcrypt
+- Optional: Socket.io (not required) for real-time leaderboard updates
+- Dev & deploy: Replit ready, environment variables for DB URI and JWT secret
+
+Functional requirements
+1. Gameplay
+  - Each game = 10 rounds.
+  - Each round: show one scrambled word (letters shuffled). Player types/selects correct arrangement.
+  - Per-round timer (configurable). If time expires, round is treated incorrect.
+  - Correct answer -> add points based on difficulty and remaining time. Wrong -> no points (optionally negative or hint cost).
+  - After 10 rounds show final score and option to save to leaderboard.
+2. Hints
+  - Hint button reveals the word's meaning (from DB).
+  - Using a hint may reduce points for that round (configurable).
+3. Categories & difficulty
+  - On Start: choose category (e.g., animals, tech, general) and difficulty (easy, medium, hard).
+  - Backend stores words with fields: text, meaning, category, difficulty.
+4. Leaderboard
+  - Global leaderboard shows top scores and user profiles.
+  - Leaderboard updated after users save final score.
+  - Admin can edit/delete entries to remove cheaters.
+5. Auth & Profile
+  - Register/login with email & password (bcrypt).
+  - JWT stored in secure httpOnly cookie or localStorage (explain tradeoffs in README).
+  - Profile page: username, avatar (optional), best scores, games played, edit profile.
+6. Admin dashboard
+  - Admin login available on front page.
+  - Dashboard features: add/edit/delete categories, add/edit/delete words (word + meaning + difficulty + category), view & edit leaderboard entries, view users, ban users.
+7. UX & Audio
+  - Sounds: game start, correct, wrong, round end, UI clicks, background music toggle.
+  - Smooth animations: transitions between rounds, score pop, leaderboard changes.
+8. UI
+  - Landing page with logo and Login/Register buttons.
+  - After login: main game page with Start Game button, Profile link, Leaderboard link.
+  - Game UI: scrambled word, input/drag letters, Hint button, timer, current round & score, pause & quit.
+  - Admin login on front page and admin dashboard route.
+9. Data & seeds
+  - Provide seed script to populate categories and sample words + meanings.
+10. Tests & docs
+  - Minimal unit/integration tests for backend endpoints.
+  - README explaining env vars, run steps, and deployment on Replit.
+
+API spec (suggested endpoints)
+- POST /api/auth/register {name,email,password}
+- POST /api/auth/login {email,password} -> {token,user}
+- GET /api/auth/me -> current user
+- POST /api/games/start {category,difficulty} -> {gameId, rounds[]}
+- POST /api/games/finish {gameId,score} -> saves result
+- GET /api/leaderboard?limit=20 -> top scores
+- GET /api/user/:id/games -> user history
+- Admin (protected, admin role required)
+  - POST /api/admin/categories
+  - POST /api/admin/words
+  - PUT /api/admin/words/:id
+  - DELETE /api/admin/words/:id
+  - PUT /api/admin/leaderboard/:id (edit/remove entry)
+
+DB schemas (Mongoose) — minimal fields
+- User: { name, email, passwordHash, role, avatarUrl, bestScore, createdAt }
+- Word: { text, meaning, category, difficulty, createdAt }
+- Category: { name, description }
+- GameResult: { userId, score, category, difficulty, rounds: [{wordId,correct,timeTaken,usedHint}], createdAt }
+- Leaderboard entry: can reuse GameResult sorted by score
+
+UI pages & components
+- Landing (logo, login/register)
+- Auth pages: Login, Register, Forgot password (optional)
+- Main/Hub: Start Game, Profile, Leaderboard, Settings (music toggle)
+- Game screen: RoundIndicator, ScrambledWord component (drag/drop or input), Timer, HintPanel, ScoreDisplay, SoundToggle
+- Admin: AdminLogin, AdminDashboard, CategoryManager, WordManager, LeaderboardManager
+- Shared: Header/Nav, Footer, Modal, Toast notifications, Loading spinner
+
+Audio & animation libs
+- Howler.js for audio
+- Framer Motion for animations
+
+Folder structure (suggested)
+/client
+  /src
+    /components
+    /pages
+    /services (API calls)
+    /styles (tailwind)
+    App.jsx
+/server
+  /models
+  /routes
+  /controllers
+  /middleware
+  server.js
+  seed.js
+README.md
+.env.example
+
+Accessibility & performance
+- Keyboard accessible controls for answering and hints
+- ARIA labels, semantic markup
+- Lazy load sounds and words, compress assets
+
+Deliverables
+- Fully runnable Replit project (client + server).
+- README with setup, env variables, how to seed DB, and deployment notes.
+- Sample seed data with 50+ words across categories/difficulties.
+- Optional: exportable JSON of words.
+
+Extra notes for the Replit generator
+- Use environment variables: MONGO_URI, JWT_SECRET, ADMIN_EMAIL, ADMIN_PASS, NODE_ENV
+- Provide a simple admin-first user in seed script (use credentials from env).
+- Make it mobile-friendly and visually attractive (use Tailwind components and Framer Motion).
+```
+
+---
+
+Want me to convert one of these into a single-line prompt for Replit's “Create from prompt” flow (short enough to paste into their UI)? Or do you want a ready-made `seed.js` and example Mongoose models next — I can generate those files now. Which one should I produce first? 😊
