@@ -145,43 +145,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ==================== GAME ROUTES ====================
   
   // Start game - create session
-  app.get("/api/games/start", authenticateToken, async (req: AuthRequest, res) => {
-    try {
-      const { category, difficulty } = req.query;
+  app.get("/api/games/start/:category/:difficulty", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      // Changed from req.query to req.params
+      const { category, difficulty } = req.params;
 
-      if (!category || !difficulty) {
-        return res.status(400).json({ error: "Category and difficulty required" });
-      }
+      if (!category || !difficulty) {
+        return res.status(400).json({ error: "Category and difficulty required" });
+      }
 
-      const words = await Word.find({
-        category,
-        difficulty,
-      }).limit(10);
+      // This query is correct. Mongoose will cast the category string to an ObjectId.
+      const words = await Word.find({
+        category,
+        difficulty,
+      }).limit(10);
 
-      if (words.length < 10) {
-        return res.status(400).json({ error: "Not enough words in this category/difficulty" });
-      }
+      if (words.length < 10) {
+        return res.status(400).json({ error: "Not enough words in this category/difficulty" });
+      }
 
-      const rounds = words.map((word) => ({
-        wordId: word._id,
-        word: word.text,
-        scrambled: scrambleWord(word.text),
-        meaning: word.meaning,
-      }));
+      const rounds = words.map((word) => ({
+        wordId: word._id,
+        word: word.text,
+        scrambled: scrambleWord(word.text),
+        meaning: word.meaning,
+      }));
 
-      const session = await GameSession.create({
-        userId: req.userId,
-        category,
-        difficulty,
-        rounds,
-      });
+      // This is also correct. GameSession stores category as a string (the ID).
+      const session = await GameSession.create({
+        userId: req.userId,
+        category,
+        difficulty,
+        rounds,
+      });
 
-      res.json(session);
-    } catch (error: any) {
-      console.error("Start game error:", error);
-      res.status(500).json({ error: error.message });
-    }
-  });
+      // This was the line you needed all along!
+      res.json(session);
+    } catch (error: any) {
+      console.error("Start game error:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
 
   // Finish game - save results
   app.post("/api/games/finish", authenticateToken, async (req: AuthRequest, res) => {
